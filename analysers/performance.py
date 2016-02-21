@@ -1,8 +1,4 @@
-#from pandas.stats.api import ols
-#from statsmodels.formula.api import ols
-#import statsmodels.formula.api as sm
 from core.stack import *
-#from pandas.stats.api import ols
 from math import sqrt
 from collections import OrderedDict as odict
 import os
@@ -10,7 +6,8 @@ import os
 class PerformanceAnalyser(object):
 
     # Number of periods in a year
-    freq_nperiods = {'daily': 252, 'weekly': 52, 'monthly': 12, 'annually': 1}
+    freq_nperiods = {'hourly': 252*6.5, 'daily': 252, 'weekly': 52, 'monthly': 12, 'annually': 1}
+    prec = '.2f'
     
     def __init__(self, **kwargs):#symbols, returns, frequency, cls_benchmark, rfrate=0.04, save=False, outdir="output"):#, benchmark='SPY'):
         self.__dict__.update(kwargs)
@@ -24,7 +21,7 @@ class PerformanceAnalyser(object):
         #self.outdir = self.options.outdir#'output'#outdir
         self.results = odict()
 
-    def initialise(self):
+    def begin(self):
         pass
 
     def analyse_performance(self):
@@ -45,18 +42,18 @@ class PerformanceAnalyser(object):
 
         # annual percentage return, approximation only
         self.mean_annual_return = self.nperiods * self.returns.mean()
-        self.results['APR'] = 100 * self.mean_annual_return
+        self.results['APR'] = self.format_string(self.mean_annual_return, '.2f', True)
 
         self.mean_annual_excess_return = self.nperiods * self.excess_return.mean()
-        self.results['Excess APR'] = 100 * self.mean_annual_excess_return
+        self.results['Excess APR'] = self.format_string(self.mean_annual_excess_return, '.2f', True)
 
         self.mean_annual_std = sqrt(self.nperiods) * self.returns.std()
-        self.results['APSTD'] = 100 * self.mean_annual_std
+        self.results['APSTD'] = self.format_string(self.mean_annual_std, '.2f', True)
 
         self.mean_annual_excess_std = sqrt(self.nperiods) * self.excess_return.std()
 
         self.total_return = self.cumulative_return[-1]
-        self.results['Total return'] = 100 * self.total_return
+        self.results['Total return'] = self.format_string(self.total_return, '.2f', True)
 
     def benchmark_returns(self):
         self.benchmark_return = self.prices_bm.pct_change().iloc[:,0]
@@ -64,7 +61,7 @@ class PerformanceAnalyser(object):
         self.benchmark_cumulative_return = ((1 + self.benchmark_return).cumprod() - 1)
 
         self.total_return_benchmark = self.benchmark_cumulative_return[-1]
-        self.results['Total return bmark'] = 100 * self.total_return_benchmark
+        self.results['Total return bmark'] = self.format_string(self.total_return_benchmark, '.2f', True)
 
     def alpha_beta(self):
         # Regress portfolio returns against market returns
@@ -72,11 +69,11 @@ class PerformanceAnalyser(object):
 
         # Alpha is intercept
         self.alpha = ols_res.beta[1]
-        self.results['Alpha'] = self.alpha
+        self.results['Alpha'] = self.format_string(self.alpha, '.2f')
 
         # Beta is gradient
         self.beta = ols_res.beta[0]
-        self.results['Beta'] = self.beta
+        self.results['Beta'] = self.format_string(self.beta, '.2f')
 
     #def total_return(self):
     #   try: 
@@ -88,18 +85,14 @@ class PerformanceAnalyser(object):
 
     def sharpe_ratio(self):
         self.sharpe = self.mean_annual_excess_return / self.mean_annual_excess_std
-        self.results['Sharpe ratio'] = self.sharpe
+        self.results['Sharpe ratio'] = self.format_string(self.sharpe, '.2f')
 
     def information_ratio(self):
         self.excess_returns_bm = self.returns - self.benchmark_return
-        print type(self.returns)
-        print type(self.benchmark_return)
-        #print self.excess_returns_bm.head()
         self.mean_annual_excess_returns_bm = self.nperiods * self.excess_returns_bm.mean()
-        #print self.mean_annual_excess_returns_bm
         self.mean_annual_excess_std_bm = sqrt(self.nperiods) * self.excess_returns_bm.std()
         self.information_ratio = self.mean_annual_excess_returns_bm / self.mean_annual_excess_std_bm
-        self.results['Information ratio'] = self.information_ratio
+        self.results['Information ratio'] = self.format_string(self.information_ratio, '.2f')
 
     def drawdown(self):
         highwatermark = [0]
@@ -123,8 +116,8 @@ class PerformanceAnalyser(object):
         self.max_drawdown = max(drawdown)
         self.max_drawdown_duration = max(drawdownduration)
 
-        self.results['DD'] = 100 * self.max_drawdown
-        self.results['DDD'] = self.max_drawdown_duration
+        self.results['Max DD'] = self.format_string(self.max_drawdown, '.2f', True)
+        self.results['Max DD duration'] = self.format_string(self.max_drawdown_duration, 'd')
 
     def plot_equity_curve(self):
         df = pd.DataFrame(index=self.cumulative_return.index)
@@ -141,6 +134,11 @@ class PerformanceAnalyser(object):
         fout = open(os.path.join(self.options.outdir, 'log.txt'), 'w')
         print "\n\nPerformance:"
         for metric, value in self.results.iteritems():
-            s = "%-20s %.2f" % (metric, value)
+            #s = "%-20s %.2f" % (metric, value)
+            s = '{:20} {}'.format(metric, value)
             print s
             fout.write(s+"\n")
+
+    def format_string(self, value, fmt, pct=False):
+        return '{:{}}'.format(value*(100 if pct else 1), fmt) + '%'*pct
+
