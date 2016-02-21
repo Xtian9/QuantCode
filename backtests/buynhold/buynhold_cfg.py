@@ -26,16 +26,16 @@ portfolio = EqualWeightsPortfolio()
 analyser = PerformanceAnalyser()
 
 backtest = Backtest(strategy = strategy,
-					portfolio = portfolio,
-					analyser = analyser,
-					symbols = symbols,
-					date_start = date_start,
-					date_end = date_end,
-					frequency = frequency,
-					datas = datas,
-					trade_time = trade_time,
-					benchmark = benchmark,
-					options = options)
+                    portfolio = portfolio,
+                    analyser = analyser,
+                    symbols = symbols,
+                    date_start = date_start,
+                    date_end = date_end,
+                    frequency = frequency,
+                    datas = datas,
+                    trade_time = trade_time,
+                    benchmark = benchmark,
+                    options = options)
 
 backtest.run()
 

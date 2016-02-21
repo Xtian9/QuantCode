@@ -9,129 +9,129 @@ import os
 
 class PerformanceAnalyser(object):
 
-	# Number of periods in a year
-	freq_nperiods = {'daily': 252, 'weekly': 52, 'monthly': 12, 'annually': 1}
-	
-	def __init__(self, **kwargs):#symbols, returns, frequency, cls_benchmark, rfrate=0.04, save=False, outdir="output"):#, benchmark='SPY'):
-		self.__dict__.update(kwargs)
-		#self.symbols = symbols
-		#self.returns = returns
-		##self.nperiods = PerformanceAnalyser.freq_nperiods[self.frequency]
-		self.rfrate = 0.04#rfrate
-		#self.benchmark = benchmark
-		#self.cls_benchmark = cls_benchmark
-		#self.save = self.options.save
-		#self.outdir = self.options.outdir#'output'#outdir
-		self.results = odict()
+    # Number of periods in a year
+    freq_nperiods = {'daily': 252, 'weekly': 52, 'monthly': 12, 'annually': 1}
+    
+    def __init__(self, **kwargs):#symbols, returns, frequency, cls_benchmark, rfrate=0.04, save=False, outdir="output"):#, benchmark='SPY'):
+        self.__dict__.update(kwargs)
+        #self.symbols = symbols
+        #self.returns = returns
+        ##self.nperiods = PerformanceAnalyser.freq_nperiods[self.frequency]
+        self.rfrate = 0.04#rfrate
+        #self.benchmark = benchmark
+        #self.cls_benchmark = cls_benchmark
+        #self.save = self.options.save
+        #self.outdir = self.options.outdir#'output'#outdir
+        self.results = odict()
 
-	def initialise(self):
-		pass
+    def initialise(self):
+        pass
 
-	def analyse_performance(self):
-		self.nperiods = PerformanceAnalyser.freq_nperiods[self.frequency]
+    def analyse_performance(self):
+        self.nperiods = PerformanceAnalyser.freq_nperiods[self.frequency]
 
-		self.portfolio_returns()
-		self.benchmark_returns()
-		self.alpha_beta()
-		self.sharpe_ratio()
-		self.drawdown()
-		self.log_results()
-		self.plot_equity_curve()
+        self.portfolio_returns()
+        self.benchmark_returns()
+        self.alpha_beta()
+        self.sharpe_ratio()
+        self.drawdown()
+        self.log_results()
+        self.plot_equity_curve()
 
-	def portfolio_returns(self):
-		self.excess_return = self.returns - (self.rfrate / self.nperiods)
-		self.cumulative_return = (1 + self.returns).cumprod() - 1
+    def portfolio_returns(self):
+        self.excess_return = self.returns - (self.rfrate / self.nperiods)
+        self.cumulative_return = (1 + self.returns).cumprod() - 1
 
-		# annual percentage return, approximation only
-		self.mean_annual_return = self.nperiods * self.returns.mean()
-		self.results['APR'] = 100 * self.mean_annual_return
+        # annual percentage return, approximation only
+        self.mean_annual_return = self.nperiods * self.returns.mean()
+        self.results['APR'] = 100 * self.mean_annual_return
 
-		self.mean_annual_excess_return = self.nperiods * self.excess_return.mean()
-		self.results['Excess APR'] = 100 * self.mean_annual_excess_return
+        self.mean_annual_excess_return = self.nperiods * self.excess_return.mean()
+        self.results['Excess APR'] = 100 * self.mean_annual_excess_return
 
-		self.mean_annual_std = sqrt(self.nperiods) * self.returns.std()
-		self.results['APSTD'] = 100 * self.mean_annual_std
+        self.mean_annual_std = sqrt(self.nperiods) * self.returns.std()
+        self.results['APSTD'] = 100 * self.mean_annual_std
 
-		self.mean_annual_excess_std = sqrt(self.nperiods) * self.excess_return.std()
+        self.mean_annual_excess_std = sqrt(self.nperiods) * self.excess_return.std()
 
-		self.total_return = self.cumulative_return[-1]
-		self.results['Total return'] = 100 * self.total_return
+        self.total_return = self.cumulative_return[-1]
+        self.results['Total return'] = 100 * self.total_return
 
-	def benchmark_returns(self):
-		self.benchmark_return = self.prices_bm.pct_change()#cls_benchmark.pct_change()
-		self.benchmark_excess_return = self.benchmark_return - (self.rfrate / self.nperiods)
-		self.benchmark_cumulative_return = ((1 + self.benchmark_return).cumprod() - 1).iloc[:,0]
+    def benchmark_returns(self):
+        self.benchmark_return = self.prices_bm.pct_change()#cls_benchmark.pct_change()
+        self.benchmark_excess_return = self.benchmark_return - (self.rfrate / self.nperiods)
+        self.benchmark_cumulative_return = ((1 + self.benchmark_return).cumprod() - 1).iloc[:,0]
 
-		self.total_return_benchmark = self.benchmark_cumulative_return[-1]
-		self.results['Total return bmark'] = 100 * self.total_return_benchmark
+        self.total_return_benchmark = self.benchmark_cumulative_return[-1]
+        self.results['Total return bmark'] = 100 * self.total_return_benchmark
 
-	def alpha_beta(self):
-		# Regress portfolio returns against market returns
-		ols_res = pd.ols(y=self.excess_return, x=self.benchmark_excess_return)
+    def alpha_beta(self):
+        # Regress portfolio returns against market returns
+        ols_res = pd.ols(y=self.excess_return, x=self.benchmark_excess_return)
 
-		# Alpha is intercept
-		self.alpha = ols_res.beta[1]
-		self.results['Alpha'] = self.alpha
+        # Alpha is intercept
+        self.alpha = ols_res.beta[1]
+        self.results['Alpha'] = self.alpha
 
-		# Beta is gradient
-		self.beta = ols_res.beta[0]
-		self.results['Beta'] = self.beta
+        # Beta is gradient
+        self.beta = ols_res.beta[0]
+        self.results['Beta'] = self.beta
 
-	#def total_return(self):
-	#	try: 
-	#		self.total_return = self.cumulative_return[-1]
-	#	except NameError:
-	#		pass
-	#		#self.total_return = final holdings - initial holdings
-	#	self.results['Total return'] = 100 * self.total_return
+    #def total_return(self):
+    #   try: 
+    #       self.total_return = self.cumulative_return[-1]
+    #   except NameError:
+    #       pass
+    #       #self.total_return = final holdings - initial holdings
+    #   self.results['Total return'] = 100 * self.total_return
 
-	def sharpe_ratio(self):
-		#FIXME: make std excess aswell 
-		#don't fixme: std doesn't change with shift!
-		self.sharpe = self.mean_annual_excess_return / self.mean_annual_std
-		self.results['Sharpe ratio'] = self.sharpe
+    def sharpe_ratio(self):
+        #FIXME: make std excess aswell 
+        #don't fixme: std doesn't change with shift!
+        self.sharpe = self.mean_annual_excess_return / self.mean_annual_std
+        self.results['Sharpe ratio'] = self.sharpe
 
-	def drawdown(self):
-		highwatermark = [0]
-		drawdown = [0]
-		drawdownduration = [0]
-		timeidx = self.returns.index
+    def drawdown(self):
+        highwatermark = [0]
+        drawdown = [0]
+        drawdownduration = [0]
+        timeidx = self.returns.index
 
-		for t in range(1, len(timeidx)):
+        for t in range(1, len(timeidx)):
 
-			# high water mark
-			hwm = max(self.cumulative_return[t], highwatermark[t-1])
-			highwatermark.append(hwm)
+            # high water mark
+            hwm = max(self.cumulative_return[t], highwatermark[t-1])
+            highwatermark.append(hwm)
 
-			# drawdown
-			dd = highwatermark[t] - self.cumulative_return[t]
-			drawdown.append(dd)
+            # drawdown
+            dd = highwatermark[t] - self.cumulative_return[t]
+            drawdown.append(dd)
 
-			# drawdown duration
-			ddd = drawdownduration[t-1] + 1 if dd>0 else 0
-			drawdownduration.append(ddd)
-		
-		self.max_drawdown = max(drawdown)
-		self.max_drawdown_duration = max(drawdownduration)
+            # drawdown duration
+            ddd = drawdownduration[t-1] + 1 if dd>0 else 0
+            drawdownduration.append(ddd)
+        
+        self.max_drawdown = max(drawdown)
+        self.max_drawdown_duration = max(drawdownduration)
 
-		self.results['DD'] = 100 * self.max_drawdown
-		self.results['DDD'] = self.max_drawdown_duration
+        self.results['DD'] = 100 * self.max_drawdown
+        self.results['DDD'] = self.max_drawdown_duration
 
-	def plot_equity_curve(self):
-		df = pd.DataFrame(index=self.cumulative_return.index)
-		df['Equity'] = self.cumulative_return
-		df['Benchmark'] = self.benchmark_cumulative_return
-		df.plot()
-		#if self.full:
-		#	print "save to output"
-		#else:
-		plt.show()
+    def plot_equity_curve(self):
+        df = pd.DataFrame(index=self.cumulative_return.index)
+        df['Equity'] = self.cumulative_return
+        df['Benchmark'] = self.benchmark_cumulative_return
+        df.plot()
+        #if self.full:
+        #   print "save to output"
+        #else:
+        plt.show()
 
-	def log_results(self):
-		#if self.save
-		fout = open(os.path.join(self.options.outdir, 'log.txt'), 'w')
-		print "\n\nPerformance:"
-		for metric, value in self.results.iteritems():
-			s = "%-20s %.2f" % (metric, value)
-			print s
-			fout.write(s+"\n")
+    def log_results(self):
+        #if self.save
+        fout = open(os.path.join(self.options.outdir, 'log.txt'), 'w')
+        print "\n\nPerformance:"
+        for metric, value in self.results.iteritems():
+            s = "%-20s %.2f" % (metric, value)
+            print s
+            fout.write(s+"\n")

@@ -21,6 +21,6 @@ class Portfolio(object):
     def backtest_portfolio(self):
         raise NotImplementedError("Should implement backtest_portfolio()!")
 
-	#def carry_forward_positions(self, weights):
-	#	weights.fillna(method='ffill', inplace=True)
+    #def carry_forward_positions(self, weights):
+    #   weights.fillna(method='ffill', inplace=True)
 
