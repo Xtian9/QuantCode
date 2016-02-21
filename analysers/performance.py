@@ -34,6 +34,7 @@ class PerformanceAnalyser(object):
         self.benchmark_returns()
         self.alpha_beta()
         self.sharpe_ratio()
+        self.information_ratio()
         self.drawdown()
         self.log_results()
         self.plot_equity_curve()
@@ -58,9 +59,9 @@ class PerformanceAnalyser(object):
         self.results['Total return'] = 100 * self.total_return
 
     def benchmark_returns(self):
-        self.benchmark_return = self.prices_bm.pct_change()#cls_benchmark.pct_change()
+        self.benchmark_return = self.prices_bm.pct_change().iloc[:,0]
         self.benchmark_excess_return = self.benchmark_return - (self.rfrate / self.nperiods)
-        self.benchmark_cumulative_return = ((1 + self.benchmark_return).cumprod() - 1).iloc[:,0]
+        self.benchmark_cumulative_return = ((1 + self.benchmark_return).cumprod() - 1)
 
         self.total_return_benchmark = self.benchmark_cumulative_return[-1]
         self.results['Total return bmark'] = 100 * self.total_return_benchmark
@@ -86,10 +87,19 @@ class PerformanceAnalyser(object):
     #   self.results['Total return'] = 100 * self.total_return
 
     def sharpe_ratio(self):
-        #FIXME: make std excess aswell 
-        #don't fixme: std doesn't change with shift!
-        self.sharpe = self.mean_annual_excess_return / self.mean_annual_std
+        self.sharpe = self.mean_annual_excess_return / self.mean_annual_excess_std
         self.results['Sharpe ratio'] = self.sharpe
+
+    def information_ratio(self):
+        self.excess_returns_bm = self.returns - self.benchmark_return
+        print type(self.returns)
+        print type(self.benchmark_return)
+        #print self.excess_returns_bm.head()
+        self.mean_annual_excess_returns_bm = self.nperiods * self.excess_returns_bm.mean()
+        #print self.mean_annual_excess_returns_bm
+        self.mean_annual_excess_std_bm = sqrt(self.nperiods) * self.excess_returns_bm.std()
+        self.information_ratio = self.mean_annual_excess_returns_bm / self.mean_annual_excess_std_bm
+        self.results['Information ratio'] = self.information_ratio
 
     def drawdown(self):
         highwatermark = [0]
