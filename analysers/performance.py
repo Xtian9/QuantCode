@@ -95,16 +95,15 @@ class PerformanceAnalyser(object):
         highwatermark = [0]
         drawdown = [0]
         drawdownduration = [0]
-        timeidx = self.returns.index
 
-        for t in range(1, len(timeidx)):
+        for t in range(1, len(self.returns.index)):
 
             # high water mark
             hwm = max(self.cumulative_return[t], highwatermark[t-1])
             highwatermark.append(hwm)
 
             # drawdown
-            dd = highwatermark[t] - self.cumulative_return[t]
+            dd = ((1+highwatermark[t]) / (1+self.cumulative_return[t])) - 1
             drawdown.append(dd)
 
             # drawdown duration
