@@ -17,6 +17,7 @@ class Backtest(object):
         self.datas = None
         self.trade_time = None
         self.benchmark = None
+        self.benchmark_qcode = None
 
         for module in self.backtest_modules:
             module.__dict__.update(kwargs)
