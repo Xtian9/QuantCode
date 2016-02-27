@@ -5,10 +5,12 @@ class Backtest(object):
     def __init__(self, strategy, portfolio, analyser, **kwargs):
         self.strategy = strategy
         self.portfolio = portfolio
-        self.analyser = analyser
-        self.backtest_modules = [self, self.strategy, self.portfolio, self.analyser]
+        self.analyser = [analyser] if type(analyser) != list else analyser
+        self.backtest_modules = [self, self.strategy, self.portfolio]
+        self.backtest_modules.extend(self.analyser)
 
         self.symbols = None
+        self.qcodes = None
         self.date_start = None
         self.date_end = None
         self.frequency = None
@@ -22,8 +24,8 @@ class Backtest(object):
 
         self.validate_input()
 
-        self.data_handler = DataHandler(self.symbols, self.date_start, self.date_end, self.frequency, self.datas)
-        self.benchmark_handler = DataHandler([self.benchmark], self.date_start, self.date_end, self.frequency, self.datas)
+        self.data_handler = DataHandler(self.symbols, self.qcodes, self.date_start, self.date_end, self.frequency, self.datas)
+        self.benchmark_handler = DataHandler([self.benchmark], [self.benchmark_qcode], self.date_start, self.date_end, self.frequency, self.datas)
 
     def validate_input(self):
         if self.symbols is None:
@@ -32,6 +34,7 @@ class Backtest(object):
         if self.benchmark is None:
             print "WARNING: No benchmark chosen. Default is SPY"
             self.benchmark = 'SPY'
+            self.benchmark_qcode = 'GOOG/NYSE_SPY'
 
     def run(self):
         print "\n\nHandling data"
@@ -54,4 +57,5 @@ class Backtest(object):
             module.returns = returns
 
         print "\n\nAnalysing results"
-        self.analyser.analyse_performance()
+        for analyser in self.analyser:
+            analyser.analyse_performance()

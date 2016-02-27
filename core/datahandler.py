@@ -7,32 +7,30 @@ AUTHTOKEN = 'HpLYEUhzrjV84uXkT9wu'
 class DataHandler(object):
 
     def __init__(self, symbols, 
+                       qcodes,
                        date_start, 
                        date_end,#=time.strftime("%Y-%m-%d"), 
                        collapse, 
                        datas): ##sampling_rate
         self.symbols = symbols
+        self.qcodes = qcodes
         self.date_start = date_start
         self.date_end = date_end
         self.collapse = collapse
         self.datas = datas
 
     def fetch_data(self):
-
         self.symbols_datas = {}
-        for symbol in self.symbols:
-            datas = Quandl.get("GOOG/NYSE_%s" % symbol, 
-                                trim_start = self.date_start, 
-                                trim_end = self.date_end, 
-                                collapse = self.collapse,
-                                authtoken = AUTHTOKEN)
+        for symbol, qcode in zip(self.symbols, self.qcodes):
+            datas = Quandl.get(qcode, 
+                               trim_start = self.date_start, 
+                               trim_end = self.date_end, 
+                               collapse = self.collapse,
+                               authtoken = AUTHTOKEN)
             self.symbols_datas[symbol] = datas
 
     def generate_data(self):
-
-        print "Fetching data..."
         self.fetch_data()
-        print "Generating data..."
         self.datas_symbols = {}
         for data in self.datas:
             df = pd.DataFrame()
