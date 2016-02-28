@@ -1,4 +1,5 @@
 from datahandler import DataHandler
+import os
 
 class Backtest(object):
 
@@ -33,9 +34,12 @@ class Backtest(object):
             raise ValueError, "Need to choose symbols to trade"
 
         if self.benchmark is None:
-            print "WARNING: No benchmark chosen. Default is SPY"
+            print "No benchmark specified. Default is SPY"
             self.benchmark = 'SPY'
             self.benchmark_qcode = 'GOOG/NYSE_SPY'
+
+        if not os.path.exists(self.options.outdir):
+            os.mkdir(self.options.outdir)
 
     def run(self):
         print "\n\nHandling data"
