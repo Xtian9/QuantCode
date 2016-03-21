@@ -10,12 +10,12 @@ class EqualWeightsPortfolio(Portfolio):
         self.weights = pd.DataFrame(index=self.signals.index, columns=self.signals.columns)
         nassets = len(self.weights.columns)
         #FIXME: should only assign weights to assets which have signals
-        for symbol in self.weights.columns:
-            self.weights[symbol] = 1. / nassets
+        self.weights.loc[:,:] = 1. / nassets
         self.carry_forward_positions()
 
     def carry_forward_positions(self):
-        self.weights.fillna(method='ffill', inplace=True)
+        #self.weights.fillna(method='ffill', inplace=True)
+        self.signals.fillna(method='ffill', inplace=True)
 
     def backtest_portfolio(self):
         self.generate_positions()
