@@ -6,4 +6,5 @@ parser.add_argument('-o', '--outdir' , action='store'     , dest='outdir' ,  def
 parser.add_argument('-s', '--save'   , action='store_true', dest='save'   ,                    help='save backtest results')
 parser.add_argument('-f', '--full'   , action='store_true', dest='full'   ,                    help='save full backtest results')
 parser.add_argument('-v', '--verbose', action='store_true', dest='verbose',                    help='verbose output')
+parser.add_argument('-d', '--debug'  , action='store_true', dest='debug'  ,                    help='debugging output/plots')
 
