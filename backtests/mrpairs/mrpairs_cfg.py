@@ -10,16 +10,18 @@ options = parser.parse_args()
 
 #____________________________________________________________________________||
 
-#symbols = ['GLD','GDX'][::-1] # x,y
-symbols = ['SPY','IWM']
-qcodes = ['GOOG/NYSEARCA_'+s for s in symbols]
-date_start, date_end = "2009-01-01", "2015-12-31"
-frequency = "daily"
-datas = ['Close']
+symbols    = ['GLD','GDX'][::-1] # x,y
+#symbols    = ['SPY','IWM']
+qcodes     = ['GOOG/NYSEARCA_'+s for s in symbols]
+date_start = "2006-05-23"
+date_end   = "2007-11-30"
+#date_end   = "2007-05-23"
+frequency  = "daily"
+datas      = ['Close']
 trade_time = 'Close'
 
 window = 250
-zentry, zexit = 1, 0.5
+zentry, zexit = 2, 1
 
 #____________________________________________________________________________||
 
