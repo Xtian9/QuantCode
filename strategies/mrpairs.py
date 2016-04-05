@@ -15,15 +15,15 @@ class MeanReversionPairsStrategy(Strategy):
             raise ValueError, "Need to choose an entry/exit z-score"
         if window == -1:
             print "\nWARNING: Performing regression over entire time frame",
-            print "- lookahead bias!\n"
+                  "- lookahead bias!\n"
         self.window = window
         self.zentry = zentry
         self.zexit = zexit
-        print "\nRunning strategy with parameters:"
-        print "\tWindow:", self.window
-        print "\tEntry z:", self.zentry
-        print "\tExit z:", self.zexit
-        print "\n"
+        print "\nRunning strategy with parameters:",
+              "\n\tWindow:", self.window,
+              "\n\tEntry z:", self.zentry,
+              "\n\tExit z:", self.zexit,
+              "\n"
 
     def begin(self):
         if len(self.symbols) != 2:
@@ -35,26 +35,30 @@ class MeanReversionPairsStrategy(Strategy):
         x_prices = self.prices.iloc[:, 0]
         y_prices = self.prices.iloc[:, 1]
 
+        # Perform linear regression
         if self.window == -1:
             ols_res = pd.ols(y=y_prices, x=x_prices)
         else:
             ols_res = pd.ols(y=y_prices, x=x_prices, window=self.window)
 
-        beta = ols_res.beta.x
-        spread_mean_ols = ols_res.beta.intercept
+        # Regression coefficients
+        beta  = ols_res.beta.x
+        alpha = ols_res.beta.intercept
 
+        # Residuals (absorb intercept)
+        #spread = y_prices - beta * x_prices - alpha
         spread = y_prices - beta * x_prices
-        
-        #mymean = pd.rolling_mean(y_prices,self.window) - beta*pd.rolling_mean(x_prices,self.window)
+       
+        # Mean and standard deviation of residuals
         if self.window == -1:
             spread_mean = spread.mean() 
             spread_std  = spread.std()
         else:
-            spread_mean = pd.rolling_mean(spread, self.window) #not same because beta is changing
+            spread_mean = pd.rolling_mean(spread, self.window)
             spread_std  = pd.rolling_std (spread, self.window)
 
+        # Deviation of residuals from mean
         z_score = (spread - spread_mean) / spread_std
-        #z_score = (spread - spread_mean_ols) / spread_std # gives weird result
 
         longs  = z_score < -self.zentry
         shorts = z_score > self.zentry
