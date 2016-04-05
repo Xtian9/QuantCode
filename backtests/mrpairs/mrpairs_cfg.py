@@ -2,10 +2,11 @@ from core.backtest import Backtest
 from strategies.mrpairs import MeanReversionPairsStrategy
 from portfolios.equalweights import EqualWeightsPortfolio
 from analysers.performance import PerformanceAnalyser
-
 from core.parser import parser
 
-
+parser.add_argument('-w', '--window', action='store', dest='window', default=None, help='lookback window')
+parser.add_argument('--zentry', action='store', dest='zentry', default=None, help='z entry threshold')
+parser.add_argument('--zexit',  action='store', dest='zexit',  default=None, help='z exit threshold')
 options = parser.parse_args()
 
 #____________________________________________________________________________||
@@ -20,8 +21,12 @@ frequency  = "daily"
 datas      = ['Close']
 trade_time = 'Close'
 
-window = 250
-zentry, zexit = 2, 1
+window = -1
+zentry, zexit = 1, 0.5
+
+if options.window is not None: window = options.window
+if options.zentry is not None: zentry = options.zentry
+if options.zexit  is not None: zexit  = options.zexit
 
 #____________________________________________________________________________||
 
