@@ -1,5 +1,5 @@
 from core.stack import *
-from core.coreclasses import Strategy
+from core.baseclasses import Strategy
 
 class BuyAndHoldStrategy(Strategy):
     

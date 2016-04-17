@@ -1,5 +1,5 @@
 from core.stack import *
-from core.coreclasses import Portfolio
+from core.baseclasses import Portfolio
 
 class EqualWeightsPortfolio(Portfolio):
 
