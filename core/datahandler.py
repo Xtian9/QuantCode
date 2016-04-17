@@ -1,17 +1,11 @@
 import pandas as pd
 import Quandl
-#import time
 
 AUTHTOKEN = 'HpLYEUhzrjV84uXkT9wu'
 
 class DataHandler(object):
 
-    def __init__(self, symbols, 
-                       qcodes,
-                       date_start, 
-                       date_end,#=time.strftime("%Y-%m-%d"), 
-                       collapse, 
-                       datas): ##sampling_rate
+    def __init__(self, symbols, qcodes, date_start, date_end, collapse, datas): ##sampling_rate
         self.symbols = symbols
         self.qcodes = qcodes
         self.date_start = date_start
