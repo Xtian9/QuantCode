@@ -14,15 +14,15 @@ class MeanReversionPairsStrategy(Strategy):
         if zentry is None or zexit is None:
             raise ValueError, "Need to choose an entry/exit z-score"
         if window == -1:
-            print "\nWARNING: Performing regression over entire time frame",
+            print "\nWARNING: Performing regression over entire time frame", \
                   "- lookahead bias!\n"
         self.window = window
         self.zentry = zentry
         self.zexit = zexit
-        print "\nRunning strategy with parameters:",
-              "\n\tWindow:", self.window,
-              "\n\tEntry z:", self.zentry,
-              "\n\tExit z:", self.zexit,
+        print "\nRunning strategy with parameters:", \
+              "\n\tWindow:", self.window, \
+              "\n\tEntry z:", self.zentry, \
+              "\n\tExit z:", self.zexit, \
               "\n"
 
     def begin(self):
