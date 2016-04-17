@@ -1,5 +1,5 @@
 from core.stack import *
-from core.coreclasses import Strategy
+from core.baseclasses import Strategy
 
 class MeanReversionPairsStrategy(Strategy):
     """
@@ -34,22 +34,22 @@ class MeanReversionPairsStrategy(Strategy):
     def generate_signals(self):
         super(MeanReversionPairsStrategy, self).generate_signals()
 
-        x_prices = self.prices.iloc[:, 0]
-        y_prices = self.prices.iloc[:, 1]
+        self.x_prices = self.prices.iloc[:, 0]
+        self.y_prices = self.prices.iloc[:, 1]
 
         # Perform linear regression
         if self.window == -1:
-            ols_res = pd.ols(y=y_prices, x=x_prices)
+            ols_res = pd.ols(y=self.y_prices, x=self.x_prices)
         else:
-            ols_res = pd.ols(y=y_prices, x=x_prices, window=self.window)
+            ols_res = pd.ols(y=self.y_prices, x=self.x_prices, window=self.window)
 
         # Regression coefficients
-        beta  = ols_res.beta.x
+        self.beta  = ols_res.beta.x
         alpha = ols_res.beta.intercept
 
         # Residuals (absorb intercept)
         #spread = y_prices - beta * x_prices - alpha
-        spread = y_prices - beta * x_prices
+        spread = self.y_prices - self.beta * self.x_prices
        
         # Mean and standard deviation of residuals
         if self.window == -1:
@@ -73,9 +73,9 @@ class MeanReversionPairsStrategy(Strategy):
 
         if self.options.debug:
             #self.debug_output()
-            plt.scatter(x_prices,y_prices); plt.show()
+            plt.scatter(self.x_prices,self.y_prices); plt.show()
             if self.window != -1:
-                beta.plot(); plt.show()
+                self.beta.plot(); plt.show()
             spread.plot(); plt.show()
             z_score.plot(); plt.show()
         

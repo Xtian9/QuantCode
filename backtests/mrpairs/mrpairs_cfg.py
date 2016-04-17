@@ -1,6 +1,6 @@
 from core.backtest import Backtest
 from strategies.mrpairs import MeanReversionPairsStrategy
-from portfolios.equalweights import EqualWeightsPortfolio
+from portfolios.hedgeratioweights import HedgeRatioWeightsPortfolio
 from analysers.performance import PerformanceAnalyser
 from core.parser import parser
 
@@ -32,7 +32,7 @@ if options.zexit  is not None: zexit  = options.zexit
 
 strategy = MeanReversionPairsStrategy(window, zentry, zexit)
 
-portfolio = EqualWeightsPortfolio()
+portfolio = HedgeRatioWeightsPortfolio()
 
 analyser = PerformanceAnalyser()
 
