@@ -52,15 +52,18 @@ class Backtest(object):
             module.prices_bm = datas_benchmark[self.trade_time]
         
         print "\n\nGenerating signals"
-        signals = self.strategy.generate_signals()
+        self.strategy.begin()
+        self.strategy.generate_signals()
         for module in self.backtest_modules:
-            module.signals = signals
+            module.signals = self.strategy.signals
         
         print "\n\nBacktesting portfolio"
-        returns = self.portfolio.backtest_portfolio()
+        self.portfolio.begin()
+        self.portfolio.generate_returns()
         for module in self.backtest_modules:
-            module.returns = returns
+            module.returns = self.portfolio.returns
 
         print "\n\nAnalysing results"
         for analyser in self.analyser:
-            analyser.analyse_performance()
+            analyser.begin()
+            analyser.generate_analysis()
