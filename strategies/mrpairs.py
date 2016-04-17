@@ -9,6 +9,7 @@ class MeanReversionPairsStrategy(Strategy):
     exit position when spread is less than exit threshold.
     """
     def __init__(self, window=None, zentry=None, zexit=None):
+        super(MeanReversionPairsStrategy, self).__init__()
         if window is None:
             raise ValueError, "Need to choose a lookback window"
         if zentry is None or zexit is None:
@@ -26,11 +27,12 @@ class MeanReversionPairsStrategy(Strategy):
               "\n"
 
     def begin(self):
+        super(MeanReversionPairsStrategy, self).begin()
         if len(self.symbols) != 2:
             raise ValueError, "Can only handle two assets"
 
     def generate_signals(self):
-        signals = pd.DataFrame(index=self.prices.index, columns=self.prices.columns)
+        super(MeanReversionPairsStrategy, self).generate_signals()
 
         x_prices = self.prices.iloc[:, 0]
         y_prices = self.prices.iloc[:, 1]
@@ -65,9 +67,9 @@ class MeanReversionPairsStrategy(Strategy):
         exits  = abs(z_score) < self.zexit
 
         #FIXME: should be in hedge ratio
-        signals.loc[longs , :] = np.array( ([-1, 1],)*len(signals[longs])  )
-        signals.loc[shorts, :] = np.array( ([ 1,-1],)*len(signals[shorts]) )
-        signals.loc[exits , :] = np.array( ([ 0, 0],)*len(signals[exits])  )
+        self.signals.loc[longs , :] = np.array( ([-1, 1],)*len(self.signals[longs])  )
+        self.signals.loc[shorts, :] = np.array( ([ 1,-1],)*len(self.signals[shorts]) )
+        self.signals.loc[exits , :] = np.array( ([ 0, 0],)*len(self.signals[exits])  )
 
         if self.options.debug:
             #self.debug_output()
@@ -77,7 +79,5 @@ class MeanReversionPairsStrategy(Strategy):
             spread.plot(); plt.show()
             z_score.plot(); plt.show()
         
-        return signals
-
     def debug_output(self):
         pass

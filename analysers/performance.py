@@ -24,7 +24,7 @@ class PerformanceAnalyser(object):
     def begin(self):
         pass
 
-    def analyse_performance(self):
+    def generate_analysis(self):
         self.nperiods = PerformanceAnalyser.freq_nperiods[self.frequency]
 
         self.portfolio_returns()
