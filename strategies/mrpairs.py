@@ -66,7 +66,6 @@ class MeanReversionPairsStrategy(Strategy):
         shorts = z_score > self.zentry
         exits  = abs(z_score) < self.zexit
 
-        #FIXME: should be in hedge ratio
         self.signals.loc[longs , :] = np.array( ([-1, 1],)*len(self.signals[longs])  )
         self.signals.loc[shorts, :] = np.array( ([ 1,-1],)*len(self.signals[shorts]) )
         self.signals.loc[exits , :] = np.array( ([ 0, 0],)*len(self.signals[exits])  )
