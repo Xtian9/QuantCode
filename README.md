@@ -4,10 +4,10 @@ Quant research and backtesting system
 
 ## Installation
 
-```shell
-git bla
+Requires pandas, numpy, and matplotlib
 
-# Source setup in every new session
+Source setup in every new session
+```shell
 source setup.sh
 ```
 
@@ -25,8 +25,14 @@ python buynhold_cfg.py
 ## Create your own backtest modules
 
 - Strategy class generates signals
+  
+  +1 long, -1 short, 0 cash
 
 - Portfolio class generates positions and compute returns
 
-- Analyser class analyses the performnance of the backtest (e.g. equity curve, Sharpe ratio, etc.)
+  e.g. define in dollar amount the fractions (weights) of total capital invested in each asset
+  
+- Analyser class analyses the performnance of the backtest 
+
+  e.g. equity curve, Sharpe ratio, etc.
 
