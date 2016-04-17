@@ -46,7 +46,7 @@ class Portfolio():
         = weighted average of asset returns
         """
         self.asset_returns = self.prices.pct_change()
-        self.returns = (self.weights * self.asset_returns * self.signals.shift(1)).sum(1)
+        self.returns = (self.weights.shift(1) * self.asset_returns * self.signals.shift(1)).sum(1)
 
     @abstractmethod
     def generate_positions(self):
