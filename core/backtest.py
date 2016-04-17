@@ -55,13 +55,13 @@ class Backtest(object):
         self.strategy.begin()
         self.strategy.generate_signals()
         for module in self.backtest_modules:
-            module.signals = self.strategy.signals
+            module.__dict__.update(self.strategy.__dict__)
         
         print "\n\nBacktesting portfolio"
         self.portfolio.begin()
         self.portfolio.generate_returns()
         for module in self.backtest_modules:
-            module.returns = self.portfolio.returns
+            module.__dict__.update(self.portfolio.__dict__)
 
         print "\n\nAnalysing results"
         for analyser in self.analyser:
