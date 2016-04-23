@@ -10,6 +10,7 @@ class MeanReversionPairsStrategy(Strategy):
     """
     def __init__(self, window=None, zentry=None, zexit=None):
         super(MeanReversionPairsStrategy, self).__init__()
+
         if window is None:
             raise ValueError, "Need to choose a lookback window"
         if zentry is None or zexit is None:
@@ -17,9 +18,11 @@ class MeanReversionPairsStrategy(Strategy):
         if window == -1:
             print "\nWARNING: Performing regression over entire time frame", \
                   "- lookahead bias!\n"
+
         self.window = window
         self.zentry = zentry
         self.zexit = zexit
+
         print "\nRunning strategy with parameters:", \
               "\n\tWindow:", self.window, \
               "\n\tEntry z:", self.zentry, \
@@ -28,6 +31,7 @@ class MeanReversionPairsStrategy(Strategy):
 
     def begin(self):
         super(MeanReversionPairsStrategy, self).begin()
+
         if len(self.symbols) != 2:
             raise ValueError, "Can only handle two assets"
 
@@ -38,10 +42,9 @@ class MeanReversionPairsStrategy(Strategy):
         self.y_prices = self.prices.iloc[:, 1]
 
         # Perform linear regression
-        if self.window == -1:
-            ols_res = pd.ols(y=self.y_prices, x=self.x_prices)
-        else:
-            ols_res = pd.ols(y=self.y_prices, x=self.x_prices, window=self.window)
+        ols_arg = dict(x=self.x_prices, y=self.y_prices)
+        if self.window == -1: ols_arg['window'] = self.window
+        ols_res = pd.ols(**ols_arg)
 
         # Regression coefficients
         self.beta  = ols_res.beta.x
