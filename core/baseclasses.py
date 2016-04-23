@@ -26,7 +26,7 @@ class Strategy():
 class Portfolio():
     """
     Base class for portfolios.
-    Need to implement generate_positions and generate_returns in derived classes.
+    Need to implement generate_positions in derived classes.
     """
     __metaclass__ = ABCMeta
 
