@@ -43,7 +43,7 @@ class MeanReversionPairsStrategy(Strategy):
 
         # Perform linear regression
         ols_arg = dict(x=self.x_prices, y=self.y_prices)
-        if self.window == -1: ols_arg['window'] = self.window
+        if self.window != -1: ols_arg['window'] = self.window
         ols_res = pd.ols(**ols_arg)
 
         # Regression coefficients
