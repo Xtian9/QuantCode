@@ -10,7 +10,7 @@ class HedgeRatioWeightsPortfolio(Portfolio):
         super(HedgeRatioWeightsPortfolio, self).generate_positions()
         
         # note absolute number of shares cancels out 
-        total_invested = self.beta * self.x_prices + self.y_prices# * self.beta
+        total_invested = self.beta * self.x_prices + self.y_prices
 
         weight_x = self.x_prices * self.beta / total_invested
         weight_y = self.y_prices / total_invested
