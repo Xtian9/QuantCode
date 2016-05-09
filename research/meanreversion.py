@@ -1,9 +1,10 @@
 from core.stack import *
 from datahandler import DataHandler
+from math import log
 import statsmodels.tsa.stattools as ts
 
 
-##___________________________________________________________________________||
+## __________________________________________________________________________||
 ## Config
 
 #symbols    = ['SPY']#,'IWM']
@@ -19,7 +20,7 @@ trade_time = 'Close'
 TEST = 'adf'
 
 
-##___________________________________________________________________________||
+## __________________________________________________________________________||
 ## Main
 
 def main():
@@ -43,14 +44,14 @@ def main():
     #hurst(prices)
 
 
-##___________________________________________________________________________||
+## __________________________________________________________________________||
 ## Statistical tools
 
-def adf(prices, nlags=None):
+def adf(prices, nlags=1):
     """
     Augmented Dickey Fuller test
     """
-    adf_res = ts.adfuller(prices, 1)
+    adf_res = ts.adfuller(prices, nlags)
 
     ret = {}
     ret['Test statistic'] = adf_res[0]
@@ -82,6 +83,24 @@ def hurst(prices):
     return hurst
 
 
+def vratiotest():
+    """
+    Variance ratio test
+    """
+    raise NotImplementedError, "See EPChan2 p.45"
+
+
+def halflife(prices):
+    """
+    Half life of mean reversion
+    using Ornstein-Uhlenbeck
+    """
+    prices_lag1 = prices.shift(1)
+    delta_prices = prices - prices_lag1
+    lambda_ = pd.ols(x=prices_lag1, y=delta_prices)
+    return -log(2) / lambda_
+
+
 def ols(prices):
     """
     Ordinary Least Squares
@@ -107,7 +126,7 @@ def residuals(prices, beta=None):
     return prices.iloc[:,1] - beta * prices.iloc[:,0]
 
 
-##___________________________________________________________________________||
+## __________________________________________________________________________||
 ## Plotting tools
 
 def plot_time_series(prices, *names):
@@ -131,7 +150,7 @@ def plot_residuals(prices):
     plt.show()
 
 
-##___________________________________________________________________________||
+## __________________________________________________________________________||
 if __name__ == "__main__":
     main()
 
