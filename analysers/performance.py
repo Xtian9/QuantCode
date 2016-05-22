@@ -1,10 +1,11 @@
 from core.stack import *
+from core.baseclasses import Analyser
 from math import sqrt
 from collections import OrderedDict as odict
 import utils
 import os
 
-class PerformanceAnalyser(object):
+class PerformanceAnalyser(Analyser):
 
     # Number of periods in a year
     freq_nperiods = {'hourly': 252*6.5, 'daily': 252, 'weekly': 52, 'monthly': 12, 'annually': 1}
