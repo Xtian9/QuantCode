@@ -120,10 +120,21 @@ class PerformanceAnalyser(object):
         self.results['Max DD duration'] = self.format_string(self.max_drawdown_duration, 'd')
 
     def plot_equity_curve(self):
-        df = pd.DataFrame(index=self.cumulative_return.index)
-        df['Equity'] = self.cumulative_return
-        df['Benchmark'] = self.benchmark_cumulative_return
-        df.plot()
+        #df = pd.DataFrame(index=self.cumulative_return.index)
+        #df['Equity'] = self.cumulative_return
+        #df['Benchmark'] = self.benchmark_cumulative_return
+        #df = pd.DataFrame(dict(Equity=self.cumulative_return, 
+        #                       Benchmark=self.benchmark_cumulative_return))
+
+        fig = plt.figure()
+        fig.patch.set_facecolor('white')
+        ax = fig.add_subplot(111, ylabel='Portfolio value growth (%)')
+        ax.set_title('Equity curve')
+        self.cumulative_return.plot(ax=ax, label='Equity')
+        self.benchmark_cumulative_return.plot(ax=ax, label='Benchmark')
+        ax.legend(loc='best')
+
+        #df.plot()
         #if self.full:
         #   print "save to output"
         #else:
