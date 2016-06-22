@@ -5,6 +5,10 @@ from collections import OrderedDict as odict
 import utils
 import os
 
+def format_string(value, fmt, pct=False):
+    return '{:{}}'.format(value*(100 if pct else 1), fmt) + '%'*pct
+
+
 class PerformanceAnalyser(Analyser):
 
     # Number of periods in a year
@@ -36,36 +40,36 @@ class PerformanceAnalyser(Analyser):
 
         # annual percentage return, approximation only
         self.annual_return = self.nperiods * self.returns.mean()
-        self.results['APR'] = self.format_string(self.annual_return, '.2f', True)
+        self.results['APR'] = format_string(self.annual_return, '.2f', True)
 
         self.annual_std = sqrt(self.nperiods) * self.returns.std()
-        self.results['Volatility'] = self.format_string(self.annual_std, '.2f', True)
+        self.results['Volatility'] = format_string(self.annual_std, '.2f', True)
 
-        self.results['Total return'] = self.format_string(self.cumreturns[-1], '.2f', True)
+        self.results['Total return'] = format_string(self.cumreturns[-1], '.2f', True)
 
     def benchmark_returns(self):
         self.returns_bm = self.prices_bm.pct_change().iloc[:,0]
         self.cumreturns_bm = (1 + self.returns_bm).cumprod() - 1
 
-        self.results['Total return bmark'] = self.format_string(self.cumreturns_bm[-1], '.2f', True)
+        self.results['Total return bmark'] = format_string(self.cumreturns_bm[-1], '.2f', True)
 
     def alpha_beta(self):
         self.alpha, self.beta = utils.alpha_beta(self.returns, self.returns_bm)
-        self.results['Alpha'] = self.format_string(self.alpha, '.2f')
-        self.results['Beta'] = self.format_string(self.beta, '.2f')
+        self.results['Alpha'] = format_string(self.alpha, '.2f')
+        self.results['Beta'] = format_string(self.beta, '.2f')
 
     def sharpe_ratio(self):
         self.sharpe = utils.sharpe_ratio(self.returns, self.nperiods, self.rfrate)
-        self.results['Sharpe ratio'] = self.format_string(self.sharpe, '.2f')
+        self.results['Sharpe ratio'] = format_string(self.sharpe, '.2f')
 
     def information_ratio(self):
         self.information_ratio = utils.information_ratio(self.returns, self.returns_bm, self.nperiods)
-        self.results['Information ratio'] = self.format_string(self.information_ratio, '.2f')
+        self.results['Information ratio'] = format_string(self.information_ratio, '.2f')
 
     def drawdown(self):
         self.max_dd, self.max_ddd = utils.drawdown(self.cumreturns)
-        self.results['Max DD'] = self.format_string(self.max_dd, '.2f', True)
-        self.results['Max DD duration'] = self.format_string(self.max_ddd, 'd')
+        self.results['Max DD'] = format_string(self.max_dd, '.2f', True)
+        self.results['Max DD duration'] = format_string(self.max_ddd, 'd')
 
     def plot_equity_curve(self):
         #df = pd.DataFrame(index=self.cumulative_return.index)
@@ -90,14 +94,11 @@ class PerformanceAnalyser(Analyser):
 
     def log_results(self):
         #if self.save
-        fout = open(os.path.join(self.options.outdir, 'log.txt'), 'w')
+        fout = open(os.path.join(self.outdir, 'log.txt'), 'w')
         print "\n\nPerformance:"
         for metric, value in self.results.iteritems():
             #s = "%-20s %.2f" % (metric, value)
             s = '{:20} {}'.format(metric, value)
             print s
             fout.write(s+"\n")
-
-    def format_string(self, value, fmt, pct=False):
-        return '{:{}}'.format(value*(100 if pct else 1), fmt) + '%'*pct
 

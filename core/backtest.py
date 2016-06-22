@@ -1,5 +1,5 @@
 from datahandler import DataHandler
-import os
+import os, time
 
 class Backtest(object):
 
@@ -25,6 +25,7 @@ class Backtest(object):
         #self.__dict__.update(kwargs)
 
         self.validate_input()
+        self.create_outdir()
 
         self.data_handler = DataHandler(self.symbols, self.qcodes, self.date_start, self.date_end, self.frequency, self.datas)
         self.benchmark_handler = DataHandler([self.benchmark], [self.benchmark_qcode], self.date_start, self.date_end, self.frequency, self.datas)
@@ -38,8 +39,22 @@ class Backtest(object):
             self.benchmark = 'SPY'
             self.benchmark_qcode = 'GOOG/NYSE_SPY'
 
-        if not os.path.exists(self.options.outdir):
-            os.mkdir(self.options.outdir)
+    def create_outdir(self):
+        outdir = self.options.outdir
+
+        if self.options.save:
+            date = time.strftime("%Y_%m_%d")
+            outdirbase = os.path.join(self.options.outdir, date)
+            revision = 1
+            while os.path.exists(outdir):
+                outdir = outdirbase + "_" + str(revision)
+                revision += 1
+
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
+
+        for module in self.backtest_modules:
+            module.outdir = outdir
 
     def run(self):
         print "\n\nHandling data"
