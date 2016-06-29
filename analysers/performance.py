@@ -93,8 +93,10 @@ class PerformanceAnalyser(Analyser):
         plt.show()
 
     def log_results(self):
-        #if self.save
         fout = open(os.path.join(self.outdir, 'log.txt'), 'w')
+        fout.write("Start date: {}\n".format(self.date_start))
+        fout.write("End date: {}\n\n".format(self.date_end))
+        fout.write("Symbols: {}\n\n".format(self.symbols))
         print "\n\nPerformance:"
         for metric, value in self.results.iteritems():
             #s = "%-20s %.2f" % (metric, value)
