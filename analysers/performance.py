@@ -84,7 +84,8 @@ class PerformanceAnalyser(Analyser):
         ax.set_title('Equity curve')
         self.cumreturns.plot(ax=ax, label='Equity')
         self.cumreturns_bm.plot(ax=ax, label='Benchmark')
-        ax.legend(loc='best')
+        ax.legend(loc='best', frameon=False)
+        ax.axhline(0, linestyle='--', color='black', lw=2)
 
         #df.plot()
         #if self.full:
