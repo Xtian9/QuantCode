@@ -25,7 +25,6 @@ class PerformanceAnalyser(Analyser):
         self.__dict__.update(kwargs)
         self.rfrate = 0.04
         self.results = odict()
-        #self.figures = []
 
     def begin(self):
         pass
@@ -33,6 +32,7 @@ class PerformanceAnalyser(Analyser):
     def generate_analysis(self):
         self.nperiods = freq_nperiods[self.frequency]
 
+        # Calculations
         self.portfolio_returns()
         self.benchmark_returns()
 
@@ -44,19 +44,6 @@ class PerformanceAnalyser(Analyser):
         self.log_results()
 
         # Plots
-        #self.plot_equity_curve()
-        #self.plot_rolling_sharpe()
-        #self.plot_drawdown()
-        #self.plot_top_drawdowns()
-
-        # 2x3 plots
-        #self.plots  = [('equity_curve', 2, 3)]
-        # 1x3 plots
-        #self.plots += [('rolling_sharpe', 1, 3), 
-        #               ('drawdown', 1, 3),
-        #               ('top_drawdowns_magnitude', 1, 3),
-        #               ('top_drawdowns_duration', 1, 3),]
-        # 
         self.create_tearsheet()
 
     #____________________________________________________________________________||
@@ -114,84 +101,43 @@ class PerformanceAnalyser(Analyser):
     #____________________________________________________________________________||
     # Plots
 
-    #def plot_equity_curve(self):
-    #    fig, ax = plotting.plot_equity_curve(self.cumreturns, 
-    #                                         self.cumreturns_bm)
-    #    self.save_fig(fig, ax, 'equitycurve')
-    
-    #def plot_rolling_sharpe(self, window=6):
-    #    fig, ax = plotting.plot_rolling_sharpe(self.returns, self.nperiods, 
-    #                                           self.rfrate, window)
-    #    self.save_fig(fig, ax, 'rollingsharpe')
-
-    #def plot_drawdown(self):
-    #    fig, ax = plotting.plot_drawdown(self.cumreturns)
-    #    self.save_fig(fig, ax, 'drawdown')
-
-    #def plot_top_drawdowns(self, ntop=5):
-    #    for ddtype, (fig, ax) in plotting.plot_top_drawdowns(
-    #                                self.cumreturns, ntop).iteritems():
-    #        self.save_fig(fig, ax, 'drawdown_top{}_{}'.format(ntop, ddtype))
-
     def create_tearsheet(self):
         vertical_sections = 6
-        #fig = plt.figure(figsize=(14, len(self.plots)*6), facecolor='w')
-        #gs = gridspec.GridSpec(len(self.plots), 3)#, wspace=0.5, hspace=0.5)
-        fig = plt.figure(figsize=(14,3*6))
-        gs = gridspec.GridSpec(3,3)
+        fig = plt.figure(figsize=(14, 4 * vertical_sections), facecolor='w')
+        gs = gridspec.GridSpec(vertical_sections, 3, wspace=0.5, hspace=0.5)
 
-        #axs = {}
-
-        ax = plt.subplot(gs[:2, :])
+        # Equity curve
+        ax_ref = plt.subplot(gs[:2, :])
         plotting.plot_equity_curve(
-            self.cumreturns, self.cumreturns_bm, ax=ax)
+            self.cumreturns, self.cumreturns_bm, ax=ax_ref)
 
+        # Rolling Sharpe
         i = 2
-        ax = plt.subplot(gs[i, :])
+        ax = plt.subplot(gs[i, :], sharex=ax_ref)
         plotting.plot_rolling_sharpe(
-            self.returns, self.nperiods, self.rfrate, window=6, 
-            ax=ax)
+            self.returns, self.nperiods, self.rfrate, window=6, ax=ax)
 
+        # Rolling drawdown
         i += 1
-        """
-        refplot = 'equity_curve'
-        #assert refplot in self.plots
+        ax = plt.subplot(gs[i, :], sharex=ax_ref)
+        plotting.plot_drawdown(self.cumreturns, ax=ax)
 
-        axs[refplot] = plt.subplot(gs[:2, :])
-        for i, plot in enumerate(self.plots[1:], 2):
-            axs[plot] = plt.subplot(gs[i, :], sharex = axs[refplot])
+        # Top drawdowns by magnitude
+        i += 1
+        ax = plt.subplot(gs[i, :], sharex=ax_ref)
+        plotting.plot_top_drawdowns(
+            self.cumreturns, ntop=5, ddtype='magnitude', ax=ax)
 
-        toplot = 'equity_curve'
-        if toplot in self.plots:
-            plotting.plot_equity_curve(
-                self.cumreturns, self.cumreturns_bm, ax=axs[toplot])
-
-        toplot = 'rolling_sharpe'
-        if toplot in self.plots:
-            plotting.plot_rolling_sharpe(
-                self.returns, self.nperiods, self.rfrate, window=6, 
-                ax=axs[toplot])
-
-        toplot = 'drawdown'
-        if toplot in self.plots:
-            plotting.plot_drawdown(
-                self.cumreturns, ax=axs[toplot])
-
-        toplot = 'top_drawdowns_magnitude' 
-        if toplot in self.plots:
-            plotting.plot_top_drawdowns(
-                self.cumreturns, ntop=5, ddtype='magnitude', ax=axs[toplot])
-
-        toplot = 'top_drawdowns_duration' 
-        if toplot in self.plots:
-            plotting.plot_top_drawdowns(
-                self.cumreturns, ntop=5, ddtype='duration', ax=axs[toplot])
-        """
+        # Top drawdowns by duration
+        i += 1
+        ax = plt.subplot(gs[i, :], sharex=ax_ref)
+        plotting.plot_top_drawdowns(
+            self.cumreturns, ntop=5, ddtype='duration', ax=ax)
+        
         for ax in fig.axes:
             plt.setp(ax.get_xticklabels(), visible=True)
-                
-        plt.show()
-        fig.savefig(os.path.join(self.outdir, 'tearsheet.png'))
+
+        self.save_fig(fig, 'tearsheet', ['.png', '.pdf'], bbox_inches='tight')
 
     #____________________________________________________________________________||
     # Output
@@ -207,7 +153,9 @@ class PerformanceAnalyser(Analyser):
             print s
             fout.write(s+"\n")
 
-    #def save_fig(self, fig, ax, name, ext='.png'):
-    #    fig.savefig(os.path.join(self.outdir, name+ext))
-    #    self.figures.append(ax)
+    def save_fig(self, fig, name, exts=['.png'], **kwargs):
+        if not isinstance(exts, list):
+            exts = [exts]
+        for ext in exts:
+            fig.savefig(os.path.join(self.outdir, name+ext), **kwargs)
 
