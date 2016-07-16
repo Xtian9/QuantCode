@@ -2,6 +2,7 @@ from core.stack import *
 from core.baseclasses import Analyser
 from math import sqrt
 from collections import OrderedDict as odict
+import matplotlib.gridspec as gridspec
 import plotting
 import utils
 import os
@@ -15,12 +16,16 @@ def format_string(value, fmt, pct=False):
 
 
 class PerformanceAnalyser(Analyser):
-
+    """
+    Compute performance measures like Sharpe ratio,
+    drawdown, etc. and make performance plots like 
+    equity curve, etc.
+    """
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
         self.rfrate = 0.04
         self.results = odict()
-        self.figures = []
+        #self.figures = []
 
     def begin(self):
         pass
@@ -39,13 +44,23 @@ class PerformanceAnalyser(Analyser):
         self.log_results()
 
         # Plots
-        self.plot_equity_curve()
-        self.plot_rolling_sharpe()
-        self.plot_drawdown()
-        self.plot_top_drawdowns()
+        #self.plot_equity_curve()
+        #self.plot_rolling_sharpe()
+        #self.plot_drawdown()
+        #self.plot_top_drawdowns()
+
+        # 2x3 plots
+        #self.plots  = [('equity_curve', 2, 3)]
+        # 1x3 plots
+        #self.plots += [('rolling_sharpe', 1, 3), 
+        #               ('drawdown', 1, 3),
+        #               ('top_drawdowns_magnitude', 1, 3),
+        #               ('top_drawdowns_duration', 1, 3),]
+        # 
+        self.create_tearsheet()
 
     #____________________________________________________________________________||
-    # Input
+    # Input/Calculations
 
     def portfolio_returns(self):
         self.cumreturns = (1 + self.returns).cumprod() - 1
@@ -99,24 +114,84 @@ class PerformanceAnalyser(Analyser):
     #____________________________________________________________________________||
     # Plots
 
-    def plot_equity_curve(self):
-        fig, ax = plotting.plot_equity_curve(self.cumreturns, 
-                                             self.cumreturns_bm)
-        self.save_fig(fig, 'equitycurve')
+    #def plot_equity_curve(self):
+    #    fig, ax = plotting.plot_equity_curve(self.cumreturns, 
+    #                                         self.cumreturns_bm)
+    #    self.save_fig(fig, ax, 'equitycurve')
+    
+    #def plot_rolling_sharpe(self, window=6):
+    #    fig, ax = plotting.plot_rolling_sharpe(self.returns, self.nperiods, 
+    #                                           self.rfrate, window)
+    #    self.save_fig(fig, ax, 'rollingsharpe')
 
-    def plot_rolling_sharpe(self, window=6):
-        fig, ax = plotting.plot_rolling_sharpe(self.returns, self.nperiods, 
-                                               self.rfrate, window)
-        self.save_fig(fig, 'rollingsharpe')
+    #def plot_drawdown(self):
+    #    fig, ax = plotting.plot_drawdown(self.cumreturns)
+    #    self.save_fig(fig, ax, 'drawdown')
 
-    def plot_drawdown(self):
-        fig, ax = plotting.plot_drawdown(self.cumreturns)
-        self.save_fig(fig, 'drawdown')
+    #def plot_top_drawdowns(self, ntop=5):
+    #    for ddtype, (fig, ax) in plotting.plot_top_drawdowns(
+    #                                self.cumreturns, ntop).iteritems():
+    #        self.save_fig(fig, ax, 'drawdown_top{}_{}'.format(ntop, ddtype))
 
-    def plot_top_drawdowns(self, ntop=5):
-        for ddtype, (fig, ax) in plotting.plot_top_drawdowns(
-                                    self.cumreturns, ntop).iteritems():
-            self.save_fig(fig, 'drawdown_top{}_{}'.format(ntop, ddtype))
+    def create_tearsheet(self):
+        vertical_sections = 6
+        #fig = plt.figure(figsize=(14, len(self.plots)*6), facecolor='w')
+        #gs = gridspec.GridSpec(len(self.plots), 3)#, wspace=0.5, hspace=0.5)
+        fig = plt.figure(figsize=(14,3*6))
+        gs = gridspec.GridSpec(3,3)
+
+        #axs = {}
+
+        ax = plt.subplot(gs[:2, :])
+        plotting.plot_equity_curve(
+            self.cumreturns, self.cumreturns_bm, ax=ax)
+
+        i = 2
+        ax = plt.subplot(gs[i, :])
+        plotting.plot_rolling_sharpe(
+            self.returns, self.nperiods, self.rfrate, window=6, 
+            ax=ax)
+
+        i += 1
+        """
+        refplot = 'equity_curve'
+        #assert refplot in self.plots
+
+        axs[refplot] = plt.subplot(gs[:2, :])
+        for i, plot in enumerate(self.plots[1:], 2):
+            axs[plot] = plt.subplot(gs[i, :], sharex = axs[refplot])
+
+        toplot = 'equity_curve'
+        if toplot in self.plots:
+            plotting.plot_equity_curve(
+                self.cumreturns, self.cumreturns_bm, ax=axs[toplot])
+
+        toplot = 'rolling_sharpe'
+        if toplot in self.plots:
+            plotting.plot_rolling_sharpe(
+                self.returns, self.nperiods, self.rfrate, window=6, 
+                ax=axs[toplot])
+
+        toplot = 'drawdown'
+        if toplot in self.plots:
+            plotting.plot_drawdown(
+                self.cumreturns, ax=axs[toplot])
+
+        toplot = 'top_drawdowns_magnitude' 
+        if toplot in self.plots:
+            plotting.plot_top_drawdowns(
+                self.cumreturns, ntop=5, ddtype='magnitude', ax=axs[toplot])
+
+        toplot = 'top_drawdowns_duration' 
+        if toplot in self.plots:
+            plotting.plot_top_drawdowns(
+                self.cumreturns, ntop=5, ddtype='duration', ax=axs[toplot])
+        """
+        for ax in fig.axes:
+            plt.setp(ax.get_xticklabels(), visible=True)
+                
+        plt.show()
+        fig.savefig(os.path.join(self.outdir, 'tearsheet.png'))
 
     #____________________________________________________________________________||
     # Output
@@ -128,12 +203,11 @@ class PerformanceAnalyser(Analyser):
         fout.write("Symbols: {}\n\n".format(self.symbols))
         print "\n\nPerformance:"
         for metric, value in self.results.iteritems():
-            #s = "%-20s %.2f" % (metric, value)
             s = '{:20} {}'.format(metric, value)
             print s
             fout.write(s+"\n")
 
-    def save_fig(self, fig, name, ext='.png'):
-        fig.savefig(os.path.join(self.outdir, name+ext))
-        self.figures.append(fig)
+    #def save_fig(self, fig, ax, name, ext='.png'):
+    #    fig.savefig(os.path.join(self.outdir, name+ext))
+    #    self.figures.append(ax)
 
