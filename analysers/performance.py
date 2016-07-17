@@ -1,9 +1,8 @@
 from core.stack import *
 from core.baseclasses import Analyser
 from collections import OrderedDict as odict
+from utils import timeseries, plotting
 import matplotlib.gridspec as gridspec
-import plotting
-import utils
 import os
 
 def format_string(value, fmt, pct=False):
@@ -43,25 +42,25 @@ class PerformanceAnalyser(Analyser):
     # Input/Calculations
 
     def portfolio_returns(self):
-        self.cumreturns = utils.cumulate_returns(self.returns)
+        self.cumreturns = timeseries.cumulate_returns(self.returns)
 
-        self.annual_return = utils.annualised_return(
+        self.annual_return = timeseries.annualised_return(
                                  self.returns, self.frequency)
         self.results['APR'] = format_string(self.annual_return, 
                                             '.2f', True)
 
-        self.annual_std = utils.annualised_volatility(
+        self.annual_std = timeseries.annualised_volatility(
                               self.returns, self.frequency)
         self.results['Volatility'] = format_string(self.annual_std, 
                                                    '.2f', True)
 
-        self.total_return = utils.total_return(self.returns)
+        self.total_return = timeseries.total_return(self.returns)
         self.results['Total return'] = format_string(self.total_return,
                                                      '.2f', True)
 
     def benchmark_returns(self):
         self.returns_bm = self.prices_bm.pct_change().iloc[:,0]
-        self.cumreturns_bm = utils.cumulate_returns(self.returns_bm)
+        self.cumreturns_bm = timeseries.cumulate_returns(self.returns_bm)
 
         self.results['Total return bmark'] = format_string(
                                                 self.cumreturns_bm[-1],
@@ -71,25 +70,25 @@ class PerformanceAnalyser(Analyser):
     # Measures
 
     def alpha_beta(self):
-        self.alpha, self.beta = utils.alpha_beta(self.returns, 
-                                                 self.returns_bm)
+        self.alpha, self.beta = timeseries.alpha_beta(
+                                    self.returns, self.returns_bm)
         self.results['Alpha'] = format_string(self.alpha, '.2f')
         self.results['Beta'] = format_string(self.beta, '.2f')
 
     def sharpe_ratio(self):
-        self.sharpe = utils.sharpe_ratio(self.returns, self.frequency, 
-                                         self.rfrate)
+        self.sharpe = timeseries.sharpe_ratio(
+                          self.returns, self.frequency, self.rfrate)
         self.results['Sharpe ratio'] = format_string(self.sharpe, '.2f')
 
     def information_ratio(self):
-        self.information_ratio = utils.information_ratio(self.returns, 
-                                               self.returns_bm, self.frequency)
+        self.information_ratio = timeseries.information_ratio(self.returns, 
+                                     self.returns_bm, self.frequency)
         self.results['Information ratio'] = format_string(
                                                 self.information_ratio, '.2f')
 
     def drawdown(self):
-        self.max_dd = utils.max_drawdown(self.cumreturns)
-        self.max_ddd = utils.max_drawdown_duration(self.cumreturns)
+        self.max_dd = timeseries.max_drawdown(self.cumreturns)
+        self.max_ddd = timeseries.max_drawdown_duration(self.cumreturns)
         self.results['Max DD'] = format_string(self.max_dd, '.2f', True)
         self.results['Max DD duration'] = format_string(self.max_ddd, '.0f')
 

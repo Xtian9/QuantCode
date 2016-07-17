@@ -1,5 +1,5 @@
 from core.stack import *
-import utils
+from utils import timeseries
 
 def style_default(ax, title='', xlabel='', ylabel='',
                   legend=True):
@@ -45,9 +45,9 @@ def plot_rolling_sharpe(returns, nperiods, rfrate, window, ax=None):
     if ax is None:
         ax = plt.gca()
 
-    overall_sharpe = utils.sharpe_ratio(returns, nperiods, rfrate)
-    rolling_sharpe = utils.rolling_sharpe(returns, nperiods,
-                                          rfrate, 21*window)
+    overall_sharpe = timeseries.sharpe_ratio(returns, nperiods, rfrate)
+    rolling_sharpe = timeseries.rolling_sharpe(returns, nperiods,
+                                               rfrate, 21*window)
 
     ax.plot(rolling_sharpe, color='orangered', lw=2, 
             label='Rolling Sharpe')
@@ -71,7 +71,7 @@ def plot_drawdown(cumrets, ax=None):
     if ax is None:
         ax = plt.gca()
 
-    dd = -1 * utils.rolling_drawdown(cumrets)
+    dd = -1 * timeseries.rolling_drawdown(cumrets)
 
     dd.plot(ax=ax, kind='area', color='coral', alpha=.7)
 
@@ -92,7 +92,7 @@ def plot_top_drawdowns(cumrets, ntop, ddtype, ax=None):
 
     colors = [plt.get_cmap('rainbow')(i) for i in np.linspace(0, 1, ntop)]
 
-    dd_info, ddd_info = utils.sort_drawdowns(cumrets)
+    dd_info, ddd_info = timeseries.sort_drawdowns(cumrets)
 
     if ddtype == 'magnitude':
         info = dd_info
@@ -115,4 +115,15 @@ def plot_top_drawdowns(cumrets, ntop, ddtype, ax=None):
     style_default(ax, 
                   title='Top drawdown periods by {}'.format(ddtype),
                   ylabel='Cumulative net return (%)')
+
+
+def plot_monthly_returns(returns, ax=None):
+    """
+    Plot distribution of monthly returns
+        returns = series of daily returns 
+    """
+    if ax is None:
+        ax = plt.gca()
+
+    
 
