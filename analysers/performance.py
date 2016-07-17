@@ -1,15 +1,10 @@
 from core.stack import *
 from core.baseclasses import Analyser
-from math import sqrt
 from collections import OrderedDict as odict
 import matplotlib.gridspec as gridspec
 import plotting
 import utils
 import os
-
-# Number of periods in a year
-freq_nperiods = {'hourly': 252*6.5, 'daily': 252, 
-                 'weekly': 52, 'monthly': 12, 'annually': 1}
 
 def format_string(value, fmt, pct=False):
     return '{:{}}'.format(value*(100 if pct else 1), fmt) + '%'*pct
@@ -30,8 +25,6 @@ class PerformanceAnalyser(Analyser):
         pass
 
     def generate_analysis(self):
-        self.nperiods = freq_nperiods[self.frequency]
-
         # Calculations
         self.portfolio_returns()
         self.benchmark_returns()
@@ -46,33 +39,35 @@ class PerformanceAnalyser(Analyser):
         # Plots
         self.create_tearsheet()
 
-    #____________________________________________________________________________||
+    #________________________________________________________________________||
     # Input/Calculations
 
     def portfolio_returns(self):
-        self.cumreturns = (1 + self.returns).cumprod() - 1
+        self.cumreturns = utils.cumulate_returns(self.returns)
 
-        # annual percentage return, approximation only
-        self.annual_return = self.nperiods * self.returns.mean()
+        self.annual_return = utils.annualised_return(
+                                 self.returns, self.frequency)
         self.results['APR'] = format_string(self.annual_return, 
                                             '.2f', True)
 
-        self.annual_std = sqrt(self.nperiods) * self.returns.std()
+        self.annual_std = utils.annualised_volatility(
+                              self.returns, self.frequency)
         self.results['Volatility'] = format_string(self.annual_std, 
                                                    '.2f', True)
 
-        self.results['Total return'] = format_string(self.cumreturns[-1],
+        self.total_return = utils.total_return(self.returns)
+        self.results['Total return'] = format_string(self.total_return,
                                                      '.2f', True)
 
     def benchmark_returns(self):
         self.returns_bm = self.prices_bm.pct_change().iloc[:,0]
-        self.cumreturns_bm = (1 + self.returns_bm).cumprod() - 1
+        self.cumreturns_bm = utils.cumulate_returns(self.returns_bm)
 
         self.results['Total return bmark'] = format_string(
                                                 self.cumreturns_bm[-1],
                                                 '.2f', True)
 
-    #____________________________________________________________________________||
+    #________________________________________________________________________||
     # Measures
 
     def alpha_beta(self):
@@ -82,13 +77,13 @@ class PerformanceAnalyser(Analyser):
         self.results['Beta'] = format_string(self.beta, '.2f')
 
     def sharpe_ratio(self):
-        self.sharpe = utils.sharpe_ratio(self.returns, self.nperiods, 
+        self.sharpe = utils.sharpe_ratio(self.returns, self.frequency, 
                                          self.rfrate)
         self.results['Sharpe ratio'] = format_string(self.sharpe, '.2f')
 
     def information_ratio(self):
         self.information_ratio = utils.information_ratio(self.returns, 
-                                               self.returns_bm, self.nperiods)
+                                               self.returns_bm, self.frequency)
         self.results['Information ratio'] = format_string(
                                                 self.information_ratio, '.2f')
 
@@ -98,7 +93,7 @@ class PerformanceAnalyser(Analyser):
         self.results['Max DD'] = format_string(self.max_dd, '.2f', True)
         self.results['Max DD duration'] = format_string(self.max_ddd, '.0f')
 
-    #____________________________________________________________________________||
+    #________________________________________________________________________||
     # Plots
 
     def create_tearsheet(self):
@@ -115,7 +110,7 @@ class PerformanceAnalyser(Analyser):
         i = 2
         ax = plt.subplot(gs[i, :], sharex=ax_ref)
         plotting.plot_rolling_sharpe(
-            self.returns, self.nperiods, self.rfrate, window=6, ax=ax)
+            self.returns, self.frequency, self.rfrate, window=6, ax=ax)
 
         # Rolling drawdown
         i += 1
@@ -139,7 +134,7 @@ class PerformanceAnalyser(Analyser):
 
         self.save_fig(fig, 'tearsheet', ['.png', '.pdf'], bbox_inches='tight')
 
-    #____________________________________________________________________________||
+    #________________________________________________________________________||
     # Output
 
     def log_results(self):

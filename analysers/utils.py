@@ -1,42 +1,95 @@
-import pandas as pd
-import numpy as np
+from core.stack import *
 import math
 
-def sharpe_ratio(returns, nperiods, rfrate):
+# Number of periods in a year
+ANNUALISATION_FACTORS = {
+    'hourly'  : 252 * 6.5, 
+    'daily'   : 252,
+    'weekly'  : 52, 
+    'monthly' : 12, 
+    'annually': 1
+}
+
+
+def cumulate_returns(returns):
+    """
+    Calculate cumulative returns
+        returns = series of returns
+    """
+    return (1 + returns).cumprod() - 1
+
+
+def total_return(returns):
+    """
+    Calculate overall return
+        returns = series of returns
+    """
+    return cumulate_returns(returns)[-1]
+
+
+def annualised_return(returns, frequency):
+    """
+    Calculate annualised return
+        returns = series of returns
+        frequency = frequency of returns
+                    e.g. daily, monthly
+    """
+    nperiods = ANNUALISATION_FACTORS[frequency] 
+    return nperiods * returns.mean()
+
+
+def annualised_volatility(returns, frequency):
+    """
+    Calculate annualised volatility
+        returns = series of returns
+        frequency = frequency of returns
+                    e.g. daily, monthly
+    """
+    nperiods = ANNUALISATION_FACTORS[frequency]
+    return math.sqrt(nperiods) * returns.std()
+
+
+def sharpe_ratio(returns, frequency, rfrate):
     """
     Calculate annualised Sharpe ratio
         returns = series of returns
-        nperiods = number of returns in a year
+        frequency = frequency of returns
+                    e.g. daily, monthly
         rfrate = risk free rate
     """
-    # Annualised mean return and volatility
-    mu = nperiods * returns.mean()
-    sigma = math.sqrt(nperiods) * returns.std()
+    mu = annualised_return(returns, frequency)
+    sigma = annualised_volatility(returns, frequency)
 
     return (mu - rfrate) / sigma
 
 
-def rolling_sharpe(returns, nperiods, rfrate, window):
+def rolling_sharpe(returns, frequency, rfrate, window):
     """
     Calculate rolling Sharpe ratio
         returns = series of returns
-        nperiods = number of returns in a year
+        frequency = frequency of returns
+                    e.g. daily, monthly
         rfrate = risk free rate
         window = number of periods in rolling window
     """
+    nperiods = ANNUALISATION_FACTORS[frequency]
+
     mu = nperiods * pd.rolling_mean(returns, window)
     sigma = math.sqrt(nperiods) * pd.rolling_std(returns, window)
 
     return (mu - rfrate) / sigma
 
 
-def information_ratio(returns, bmreturns, nperiods):
+def information_ratio(returns, bmreturns, frequency):
     """
     Calculate annualised information ratio
         returns = series of portfolio returns
         bmreturns = series of benchmark returns
-        nperiods = number of returns in a year
+        frequency = frequency of returns
+                    e.g. daily, monthly
     """
+    nperiods = ANNUALISATION_FACTORS[frequency]
+
     # Excess returns over benchmark
     excreturns = returns - bmreturns
 
@@ -172,31 +225,4 @@ def sort_drawdowns(cumrets):
         info.sort(key=lambda tup: tup[2], reverse=True)
 
     return dd_info, ddd_info
-
-
-#def drawdown_DEPRECATED(cumrets):
-#    """
-#    Calculate high water mark, drawdown and 
-#    drawdown duration series
-#        cumrets = series of cumulative returns
-#    """
-#    highwatermark = [0]
-#    drawdown = [0]
-#    drawdownduration = [0]
-#
-#    for t in range(1, len(cumrets.index)):
-#
-#        # High water mark
-#        hwm = max(cumrets[t], highwatermark[t-1])
-#        highwatermark.append(hwm)
-#
-#        # Drawdown
-#        dd = ( (1+highwatermark[t]) / (1+cumrets[t]) ) - 1
-#        drawdown.append(dd)
-#
-#        # Drawdown duration
-#        ddd = drawdownduration[t-1] + 1 if dd > 0 else 0
-#        drawdownduration.append(ddd)
-#
-#    return max(drawdown), max(drawdownduration)
 
