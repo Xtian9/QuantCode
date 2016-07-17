@@ -96,8 +96,8 @@ class PerformanceAnalyser(Analyser):
     # Plots
 
     def create_tearsheet(self):
-        vertical_sections = 6
-        fig = plt.figure(figsize=(14, 4 * vertical_sections), facecolor='w')
+        vertical_sections = 7
+        fig = plt.figure(figsize=(14, 5 * vertical_sections), facecolor='w')
         gs = gridspec.GridSpec(vertical_sections, 3, wspace=0.5, hspace=0.5)
 
         # Equity curve
@@ -127,7 +127,13 @@ class PerformanceAnalyser(Analyser):
         ax = plt.subplot(gs[i, :], sharex=ax_ref)
         plotting.plot_top_drawdowns(
             self.cumreturns, ntop=5, ddtype='duration', ax=ax)
-        
+
+        i += 1
+
+        # Returns distribution
+        ax = plt.subplot(gs[i, 1])
+        plotting.plot_returns_distr(self.returns, 'monthly', ax=ax)
+
         for ax in fig.axes:
             plt.setp(ax.get_xticklabels(), visible=True)
 

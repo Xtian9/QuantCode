@@ -117,13 +117,34 @@ def plot_top_drawdowns(cumrets, ntop, ddtype, ax=None):
                   ylabel='Cumulative net return (%)')
 
 
-def plot_monthly_returns(returns, ax=None):
+def plot_returns_distr(returns, frequency=None, bins=20, ax=None, **kwargs):
     """
-    Plot distribution of monthly returns
+    Plot distribution of returns
         returns = series of daily returns 
+        frequency = frequency of returns to be plotted
+                    e.g. daily, monthly
+        bins = number of histogram bins
+        kwargs = optional arguments for hist plot
     """
     if ax is None:
         ax = plt.gca()
 
-    
+    aggrets = 100 * (timeseries.aggregate_returns(
+                         returns, frequency) if frequency else returns)
+
+    aggrets.dropna(inplace=True)
+
+    aggrets_mean = aggrets.mean()
+
+    ax.hist(aggrets, color='orangered', alpha=.8, bins=bins, **kwargs)
+
+    ax.axvline(aggrets_mean, 
+               color='gold', linestyle='--', lw=2,
+               label='Mean: {:.1f}%'.format(aggrets_mean))
+
+    ax.axvline(0, color='black', linestyle='-', lw=1)
+
+    style_default(ax, 
+                  title='Distribution of {} returns'.format(frequency), 
+                  xlabel='Return (%)')
 

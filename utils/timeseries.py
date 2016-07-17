@@ -7,7 +7,7 @@ ANNUALISATION_FACTORS = {
     'daily'   : 252,
     'weekly'  : 52, 
     'monthly' : 12, 
-    'annually': 1
+    'yearly'  : 1
 }
 
 
@@ -17,6 +17,35 @@ def cumulate_returns(returns):
         returns = series of returns
     """
     return (1 + returns).cumprod() - 1
+
+
+def aggregate_returns(returns, frequency):
+    """
+    Aggregate returns by day, month, etc.
+        returns = series of returns
+        frequency = frequency for aggregation
+                    (daily, monthly, yearly)
+    """
+
+    dates = returns.index
+
+    if frequency == 'yearly':
+        to_groupby = [dates.year]
+
+    elif frequency == 'monthly':
+        to_groupby = [dates.year, dates.month]
+
+    elif frequency == 'daily':
+        to_groupby = [dates.year, dates.month, dates.day]
+
+    elif frequency == 'weekly':
+        to_groupby = [dates.year, dates.weekofyear]
+
+    else:
+        raise ValueError(
+            'Frequency "{}" not valid or supported'.format(frequency))
+
+    return returns.groupby(to_groupby).apply(total_return)
 
 
 def total_return(returns):
