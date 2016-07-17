@@ -1,12 +1,12 @@
 from core.stack import *
 import utils
 
-def style_default(fig, ax, title='', xlabel='', ylabel='',
+def style_default(ax, title='', xlabel='', ylabel='',
                   legend=True):
     """
     Default plotting style/stuff
     """
-    fig.patch.set_facecolor('white')
+    #fig.patch.set_facecolor('white')
 
     ax.set_title(title)
     ax.set_xlabel(xlabel)
@@ -16,26 +16,25 @@ def style_default(fig, ax, title='', xlabel='', ylabel='',
         ax.legend(loc='best', frameon=False)
     
 
-def plot_equity_curve(cumrets, cumrets_bm):
+def plot_equity_curve(cumrets, cumrets_bm, ax=None):
     """
     Plot equity curve
         cumrets = series of strategy cumulative returns
         cumrets_bm = series of benchmark cumulative returns
     """
-    fig, ax = plt.subplots()
+    if ax is None:
+        ax = plt.gca()
 
     ax.plot(cumrets, label='Equity')
     ax.plot(cumrets_bm, label='Benchmark')
 
     ax.axhline(0, linestyle='--', color='black', lw=2)
 
-    style_default(fig, ax, title='Equity curve',
+    style_default(ax, title='Equity curve',
                   ylabel='Portfolio value growth (%)')
 
-    return fig, ax 
 
-
-def plot_rolling_sharpe(returns, nperiods, rfrate, window):
+def plot_rolling_sharpe(returns, nperiods, rfrate, window, ax=None):
     """
     Plot rolling Sharpe ratio
         returns = series of returns
@@ -43,7 +42,8 @@ def plot_rolling_sharpe(returns, nperiods, rfrate, window):
         rfrate = risk free rate
         window = number of months in sliding window
     """
-    fig, ax = plt.subplots()
+    if ax is None:
+        ax = plt.gca()
 
     overall_sharpe = utils.sharpe_ratio(returns, nperiods, rfrate)
     rolling_sharpe = utils.rolling_sharpe(returns, nperiods,
@@ -58,31 +58,28 @@ def plot_rolling_sharpe(returns, nperiods, rfrate, window):
 
     ax.axhline(0, color='black', linestyle='-', lw=2)
 
-    style_default(fig, ax, 
+    style_default(ax, 
                   title='Rolling Sharpe ratio ({} months)'.format(window),
                   ylabel='Sharpe ratio')
 
-    return fig, ax
 
-
-def plot_drawdown(cumrets):
+def plot_drawdown(cumrets, ax=None):
     """
     Plot drawdown vs time
         cumrets = series of cumulative returns
     """
-    fig, ax = plt.subplots()
+    if ax is None:
+        ax = plt.gca()
 
     dd = -1 * utils.rolling_drawdown(cumrets)
 
-    dd.plot(kind='area', color='coral', alpha=.7)
+    dd.plot(ax=ax, kind='area', color='coral', alpha=.7)
 
-    style_default(fig, ax, title='Drawdown', 
-                           ylabel='Drawdown', legend=False)
-
-    return fig, ax
+    style_default(ax, title='Drawdown', 
+                      ylabel='Drawdown (%)', legend=False)
 
 
-def plot_top_drawdowns(cumrets, ntop):
+def plot_top_drawdowns(cumrets, ntop, ddtype, ax=None):
     """
     Plot top drawdowns by magntidue and duration
         cumrets = series of cumulative returns
@@ -90,32 +87,32 @@ def plot_top_drawdowns(cumrets, ntop):
         ret = dictionary of (fig, ax) for
               magnitude and duration plots
     """
-    ret = {}
+    if ax is None:
+        ax = plt.gca()
 
     colors = [plt.get_cmap('rainbow')(i) for i in np.linspace(0, 1, ntop)]
 
     dd_info, ddd_info = utils.sort_drawdowns(cumrets)
 
-    for ddtype, info in (('magnitude', dd_info), ('duration', ddd_info)):
-        fig, ax = plt.subplots()
-        ax.plot(cumrets)
+    if ddtype == 'magnitude':
+        info = dd_info
+    elif ddtype == 'duration':
+        info = ddd_info
 
-        for i, (date_start, date_end, dd) in enumerate(info[:ntop]):
-            if ddtype == 'magnitude':
-                label = '{:.1f}%'.format(dd*100)
-            elif ddtype == 'duration':
-                label = '{:.0f}'.format(dd)
+    ax.plot(cumrets)
 
-            ax.fill_between((date_start, date_end),
-                            *ax.get_ylim(),
-                            alpha=.3, color=colors[ntop-i-1],
-                            label=label)
+    for i, (date_start, date_end, dd) in enumerate(info[:ntop]):
+        if ddtype == 'magnitude':
+            label = '{:.1f}%'.format(dd*100)
+        elif ddtype == 'duration':
+            label = '{:.0f}'.format(dd)
 
-        style_default(fig, ax, 
-                      title='Top drawdown periods by {}'.format(ddtype),
-                      ylabel='Cumulative net return (%)')
+        ax.fill_between((date_start, date_end),
+                        *ax.get_ylim(),
+                        alpha=.3, color=colors[ntop-i-1],
+                        label=label)
 
-        ret[ddtype] = (fig, ax)
-
-    return ret
+    style_default(ax, 
+                  title='Top drawdown periods by {}'.format(ddtype),
+                  ylabel='Cumulative net return (%)')
 
