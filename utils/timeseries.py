@@ -26,7 +26,6 @@ def aggregate_returns(returns, frequency):
         frequency = frequency for aggregation
                     (daily, monthly, yearly)
     """
-
     dates = returns.index
 
     if frequency == 'yearly':

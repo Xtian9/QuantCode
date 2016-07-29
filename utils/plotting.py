@@ -1,12 +1,13 @@
 from core.stack import *
 from utils import timeseries
 
-def style_default(ax, title='', xlabel='', ylabel='',
+def style_default(ax, fig=None, title='', xlabel='', ylabel='',
                   legend=True):
     """
     Default plotting style/stuff
     """
-    #fig.patch.set_facecolor('white')
+    if fig:
+        fig.patch.set_facecolor('white')
 
     ax.set_title(title)
     ax.set_xlabel(xlabel)

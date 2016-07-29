@@ -7,6 +7,7 @@ export PYTHONPATH=${PYTHONPATH}:${PWD}/backtests
 export PYTHONPATH=${PYTHONPATH}:${PWD}/core
 export PYTHONPATH=${PYTHONPATH}:${PWD}/portfolios
 export PYTHONPATH=${PYTHONPATH}:${PWD}/strategies
+export PYTHONPATH=${PYTHONPATH}:${PWD}/utils
 
 #python splash.py
 echo "Welcome to QuantCode"
